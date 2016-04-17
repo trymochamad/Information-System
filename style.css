@@ -1,0 +1,131 @@
+@font-face {
+    font-family: bebas;
+    src: url(font/BEBAS.ttf);
+}
+
+div {
+    font-family: bebas !important;
+    color: #ffe641 !important;
+    letter-spacing: 1px !important;
+
+}
+
+H1{
+    color: white;
+}
+
+footer{
+    color: white;
+}
+
+.frontpage{
+    font-family: dosis;
+    color: grey;
+    text-align: center;
+}
+
+.navbar {  border: none!important; }
+
+
+.navbar.center .navbar-inner {
+    text-align: center;
+}
+.navbar.center .navbar-inner .nav {
+    float: none;
+    display:inline-block;
+}
+
+
+
+.tales {
+    width: 100%;
+}
+/* Declare heights because of positioning of img element */
+.carousel .item {
+    width: 100%;
+    background-color: #777;
+}
+.carousel-inner{
+    width:100%;
+    max-height: 640px !important;
+}
+#myCarousel.carousel.slide {width: 100%; !important}
+
+/* unvisited link */
+a:link {
+    color: #ffe641 !important;
+}
+
+
+/* visited link */
+a:visited {
+    color: #ffe641;
+    font-family: bebas;
+}
+
+/* mouse over link */
+a:hover {
+    color: #a8961e !important;
+    text-decoration: none !important;
+}
+
+/* selected link */
+a:active {
+    color: #ffe641 !important;
+
+}
+
+@media screen and (min-width:  770px) {
+    .navbar { text-align: center; }
+    .navbar-header { display: inline-block; float: none !important; }
+    .navbar-collapse.collapse { display: inline-block !important; }
+}
+
+.navbar a {
+    color: #ffe641 !important;
+    font-family: bebas;
+}
+.navbar a:hover {
+    color: #a8961e !important;
+    text-decoration: none;
+}
+
+.insidecard{
+    font-family: serif ;
+    background-color: #3d3d3d;
+    height: 150px
+}
+
+.maxedwidth {
+    max-width:1300px;
+}
+
+.box {
+    padding: 0 5px 0 5px;
+}
+
+.btn {
+    background-color: #3d3d3d !important;
+    color: #ffe641 !important;
+}
+.form-control{
+    border-width: thick;
+}
+.btn-xlarge {
+    background-color: #3d3d3d !important;
+    color: #ffe641 !important;
+    padding: 18px 28px;
+    font-size: 22px;
+    line-height: normal;
+    -webkit-border-radius: 8px;
+    -moz-border-radius: 8px;
+    border-radius: 8px;
+}
+
+.text-black{
+    color: #3d3d3d !important;
+}
+.btnEdit,.btnDelete {
+    width: 20px;
+    height: 20px;
+}
