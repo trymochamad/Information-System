@@ -1,19 +1,8 @@
 <?php
-    // session_start();
-
-    // include "Conf.php";
-
-    // if(!isset($_SESSION["login"])) {
-    //   header("Location: index.php");
-    //   exit;
-    // }
-    // if($_SESSION["login"] !== $session_login) {
-    //   header("Location: index.php");
-    //   exit;
-    // }
-    // include("DBConnector.php");
-$penjualan = array(array("id"=>1, "username"=>"iafir", "id_produk"=>1, "nama_produk" => "Nasi", "tanggal"=>"15 Maret 1996", "harga_terjual"=>5000),
-    array("id"=>2, "username"=>"iafir", "id_produk"=>2, "nama_produk" => "Air Mineral", "tanggal"=>"15 Maret 1996", "harga_terjual"=>2000));
+    include "Authenticator.php";
+    authOperasional();
+    
+    $penjualan = getAllPenjualan();
 ?>
 
 <!DOCTYPE html>
@@ -109,6 +98,7 @@ $penjualan = array(array("id"=>1, "username"=>"iafir", "id_produk"=>1, "nama_pro
                         <table class="table">
                             <thead>
                                 <tr>
+                                    <th>ID</th>
                                     <th>Pegawai</th>
                                     <th>Produk</th>
                                     <th>Tanggal</th>
@@ -119,6 +109,7 @@ $penjualan = array(array("id"=>1, "username"=>"iafir", "id_produk"=>1, "nama_pro
                                 <?php $total = 0 ?>
                                 <?php foreach($penjualan as $jual): ?>
                                     <tr>
+                                        <td><?=$jual["id"]?></td>
                                         <td><?=$jual["username"]?></td>
                                         <td><?=$jual["id_produk"]?> - <?=$jual["nama_produk"]?></td>
                                         <td><?=$jual["tanggal"]?></td>
@@ -127,7 +118,8 @@ $penjualan = array(array("id"=>1, "username"=>"iafir", "id_produk"=>1, "nama_pro
                                 <?php $total += $jual["harga_terjual"];
                                 endforeach; ?>
                                 <tr>
-                                   <td><b>Total</b></td>
+                                    <td><b>Total</b></td>
+                                    <td></td>
                                     <td></td>
                                     <td></td>
                                     <td>Rp <?=$total?></td>
@@ -170,7 +162,6 @@ $penjualan = array(array("id"=>1, "username"=>"iafir", "id_produk"=>1, "nama_pro
     </center>
     <script type="text/javascript">
         function cetak() {
-
         }
     </script>
 </body>

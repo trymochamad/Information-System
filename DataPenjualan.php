@@ -1,36 +1,32 @@
 <?php
-    session_start();
+    include "Authenticator.php";
+    authOperasional();
 
-    include "Conf.php";
-
-    if(!isset($_SESSION["username"])) {
-      header("Location: index.php");
-      exit;
-    }
-    include("DBConnector.php");
-    if(is_null(getPegawai($_SESSION["username"]))) {
-      header("Location: index.php");
-      exit;
-    }
+    $username = $_SESSION["username"];
     $message = null;
     $action = null;
     if($_SERVER["REQUEST_METHOD"] == "POST") {
         $action = preprocess($_POST["action"]);
-        $id = preprocess($_POST["id"]);
-        $id_produk = preprocess($_POST["id_produk"]);
-        $tanggal = preprocess($_POST["tanggal"]);
-        $harga = preprocess($_POST["harga"]);
     }
     if(is_null($message) && !is_null($action)) {
-        if($action == "add") {
-            $message = addPenjualan($_SESSION["username"], $id_produk, $tanggal, $harga);
-            if(is_null($message))
-                $message = "Penambahan penjualan berhasil";
+        $id = preprocess($_POST["id"]);
+        if($action == "delete") {
+            deletePenjualan($id, $username);
         }
-        elseif ($action == "edit") {
-            $message = editPenjualan($id, $_SESSION["username"], $id_produk, $tanggal, $harga);
-            if(is_null($message))
-                $message = "Pengeditan penjualan berhasil";
+        else {
+            $id_produk = preprocess($_POST["id_produk"]);
+            $tanggal = preprocess($_POST["tanggal"]);
+            $harga = preprocess($_POST["harga"]);
+            if($action == "add") {
+                $message = addPenjualan($_SESSION["username"], $id_produk, $tanggal, $harga);
+                if(is_null($message))
+                    $message = "Penambahan penjualan berhasil";
+            }
+            elseif ($action == "edit") {
+                $message = editPenjualan($id, $_SESSION["username"], $id_produk, $tanggal, $harga);
+                if(is_null($message))
+                    $message = "Pengeditan penjualan berhasil";
+            }
         }
     }
     function preprocess($data) {
@@ -179,6 +175,7 @@
                         <table class="table">
                             <thead>
                                 <tr>
+                                    <th>ID</th>
                                     <th>Pegawai</th>
                                     <th>Produk</th>
                                     <th>Tanggal</th>
@@ -190,12 +187,21 @@
 
                                 <?php foreach($penjualan as $jual): ?>
                                     <tr>
+                                        <td><?=$jual["id"]?></td>
                                         <td id='pegawai<?=$jual["id"]?>'><?=$jual["username"]?></td>
                                         <td id='produk<?=$jual["id"]?>'><?=$jual["id_produk"]?> - <?=$jual["nama_produk"]?></td>
                                         <td id='tanggal<?=$jual["id"]?>'><?=$jual["tanggal"]?></td>
                                         <td id='harga<?=$jual["id"]?>'>Rp <?=$jual["harga_terjual"]?></td>
-                                        <td><a href="#"><img src='image/edit.jpg' class='btnEdit' onclick='edit(<?=$jual["id"]?>)' /></a>
-                                            <a href='delete_jual.php?id=<?=$jual["id"]?>'><img src='image/delete.jpg' class='btnDelete'/></a></td>
+                                        <td>
+                                            <?php if($jual["username"] == $username): ?>
+                                            <a href="#"><img src='image/edit.jpg' class='btnEdit' onclick='edit(<?=$jual["id"]?>)' /></a>
+                                            <form action="#" method="POST" onsubmit="return confirm('Apakah Anda yakin akan menghapus penjualan dengan ID <?=$jual["id"]?>'     );">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="id" value='<?=$jual["id"]?>'>
+                                            <input type="image" src='image/delete.jpg' class='btnDelete'/>
+                                            </form>
+                                            <?php endif; ?>
+                                        </td>
                                     </tr>
                                     <?php endforeach; ?>
 
@@ -247,6 +253,7 @@
                 var d = new Date();
                 document.getElementById("tanggal").value = ""+d.getFullYear()+"-"+(d.getMonth()+1) + "-"+(d.getDate());
                 document.getElementById("harga").value = "";
+                document.getElementById("btnSubmit").value = "tambahkan";
                 $("#overlay_form").fadeIn(1000);
                 positionPopup();
             });
@@ -271,12 +278,18 @@
         //maintain the popup at center of the page when browser resized
         $(window).bind('resize',positionPopup);
         function edit(id) {
-            document.getElementById("judul_form").innerHTML = "Edit Data Penjualan";
+            var produk = [];
+            <?php foreach ($produk as $item) {
+                    echo 'produk.push("'.$item["id"].' - '.$item['nama'].'");';
+                }
+            ?>
+            document.getElementById("judul_form").innerHTML = "Edit Data Penjualan (ID : "+id+")";
             document.getElementById("action").value = "edit";
             document.getElementById("id_penjualan").value = id;
-            document.getElementById("id_produk").selectedIndex = -1;
+            document.getElementById("id_produk").selectedIndex = produk.indexOf(document.getElementById("produk"+id).innerHTML);
             document.getElementById("tanggal").value = document.getElementById("tanggal"+id).innerHTML;
             document.getElementById("harga").value = document.getElementById("harga"+id).innerHTML.substring(3);
+            document.getElementById("btnSubmit").value = "ubah";
             $("#overlay_form").fadeIn(1000);
             positionPopup();
         }

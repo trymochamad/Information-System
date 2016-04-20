@@ -1,20 +1,43 @@
 <?php
-    // session_start();
+    include "Authenticator.php";
+    authPengadaan();
 
-    // include "Conf.php";
-
-    // if(!isset($_SESSION["login"])) {
-    //   header("Location: index.php");
-    //   exit;
-    // }
-    // if($_SESSION["login"] !== $session_login) {
-    //   header("Location: index.php");
-    //   exit;
-    // }
-    // include("DBConnector.php");
-$bahanbaku = array(array("id"=>1, "nama"=>"Beras", "tersedia"=>20, "batas_minimum" => 5),
-    array("id"=>2, "nama"=>"Gandum", "tersedia"=>25, "batas_minimum" => 5));
-$produk = array(array("id"=>1, "nama"=>"Nasi"), array("id"=>2, "nama"=>"Air Mineral"));
+    $username = $_SESSION["username"];
+    $message = null;
+    $action = null;
+    if($_SERVER["REQUEST_METHOD"] == "POST") {
+        $action = preprocess($_POST["action"]);
+    }
+    if(is_null($message) && !is_null($action)) {
+        $id = preprocess($_POST["id"]);
+        if($action == "delete") {
+            $message = deleteBahan($id);
+            if(is_null($message))
+                    $message = "Penghapusan bahan baku berhasil";
+        }
+        else {
+            $nama = preprocess($_POST["nama"]);
+            $tersedia = preprocess($_POST["tersedia"]);
+            $batas_minimum = preprocess($_POST["batas_minimum"]);
+            if($action == "add") {
+                $message = addBahan($nama, $tersedia, $batas_minimum);
+                if(is_null($message))
+                    $message = "Penambahan bahan baku berhasil";
+            }
+            elseif ($action == "edit") {
+                $message = editBahan($id, $nama, $tersedia, $batas_minimum);
+                if(is_null($message))
+                    $message = "Pengeditan bahan baku berhasil";
+            }
+        }
+    }
+    function preprocess($data) {
+        $data = trim($data);
+        $data = stripslashes($data);
+        $data = htmlspecialchars($data);
+        return $data;
+    }
+    $bahan_baku = getAllBahan();
 ?>
 
 <!DOCTYPE html>
@@ -106,45 +129,41 @@ $produk = array(array("id"=>1, "nama"=>"Nasi"), array("id"=>2, "nama"=>"Air Mine
                 <div class="row">
                     <div class="text-black container" style="width:100%">
                         <h2>Bahan Baku</h2>
-                        <p>Untuk menambahkan data bahan baku klik <a href="#" id="pop" >tambah baru</a></p>
+                        <p>Untuk menambahkan data bahan baku klik <a href="#" id="pop" >tambah baru</a>
                             <br />
-                            <form id="overlay_form" style="display:none">
+                            <form id="overlay_form" style="display:none" method="POST" action="#">
                                 <h2 id="judul_form">Bahan Baku Baru</h2>
-                                <input type="hidden" id="id_penjualan" name="id" value="-1"/>
-                                <div class="row">
-                                 <div class="col-sm-3 text-right" style="color: #3d3d3d !important;font-size: large">
-                                     Produk
-                                 </div>
-
-                                   <div class="col-sm-9">
-                                       <select type="text" class="form-control" id="Status_User" name="Status" style="width: 450px">
-                                        <?php foreach ($produk as $item) : ?> 
-                                        <option value="<?=$item["id"]?>"><?=$item["id"]?> - <?=$item["nama"]?></option>
-                                        <?php endforeach ?>
-                                        </select>
-                                   <br>
-                                   </div>
-                             </div>
+                                <input type="hidden" id="id_bahan" name="id" value="-1">
+                                <input type="hidden" id="action" name="action" value="add">
 
                              <div class="row">
                                  <div class="col-sm-3 text-right" style="color: #3d3d3d !important;font-size: large">
-                                     Tanggal
+                                     Nama Bahan
                                  </div>
                                  <div class="col-sm-9">
-                                     <input type="text" class="form-control" id="tanggal" style="width: 450px"><br>
+                                     <input type="text" class="form-control" id="nama" name="nama" style="width: 450px"><br>
                                  </div>
                              </div>
 
                              <div class="row">
                                  <div class="col-sm-3 text-right" style="color: #3d3d3d !important;font-size: large">
-                                     Harga
+                                     Jumlah Tersedia
                                  </div>
                                  <div class="col-sm-9">
-                                     <input type="text" class="form-control" id="harga" style="width: 450px"><br>
+                                     <input type="text" class="form-control" id="tersedia" name="tersedia" style="width: 450px"><br>
+                                 </div>
+                             </div>
+
+                             <div class="row">
+                                 <div class="col-sm-3 text-right" style="color: #3d3d3d !important;font-size: large">
+                                     Batas Minimum
+                                 </div>
+                                 <div class="col-sm-9">
+                                     <input type="text" class="form-control" id="batas_minimum" name="batas_minimum" style="width: 450px"><br>
                                  </div>
                              </div>
                              <center>
-                                <input type="button" value="tambahkan" />  
+                                <input type="submit" id="btnSubmit" value="tambahkan" />  
                                 <a href="#" id="close" >batal</a>
                             </center>
                         </form>
@@ -161,24 +180,32 @@ $produk = array(array("id"=>1, "nama"=>"Nasi"), array("id"=>2, "nama"=>"Air Mine
                             </thead>
                             <tbody>
 
-                                <?php foreach($bahanbaku as $bahan): ?>
+                                <?php foreach($bahan_baku as $bahan): ?>
                                     <tr>
                                         <td><?=$bahan["id"]?></td>
-                                        <td><?=$bahan["nama"]?></td>
-                                        <td><?=$bahan["tersedia"]?></td>
-                                        <td><?=$bahan["batas_minimum"]?></td>
-                                        <td><a href="#"><img src='image/edit.jpg' class='btnEdit' onclick='edit()' /></a>
-                                            <a href='delete_jual.php?id=<?=$jual["id"]?>'><img src='image/delete.jpg' class='btnDelete'/></a></td>
-                                        </tr>
+                                        <td id='nama<?=$bahan["id"]?>'><?=$bahan["nama"]?></td>
+                                        <td id='tersedia<?=$bahan["id"]?>'><?=$bahan["tersedia"]?></td>
+                                        <td id='batas_minimum<?=$bahan["id"]?>'><?=$bahan["batas_minimum"]?></td>
+                                        <td>
+                                            <a href="#"><img src='image/edit.jpg' class='btnEdit' onclick='edit(<?=$bahan["id"]?>)' /></a>
+                                            <form action="#" method="POST" onsubmit="return confirm('Apakah Anda yakin akan menghapus bahan baku dengan ID <?=$bahan["id"]?>'     );">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="id" value='<?=$bahan["id"]?>'>
+                                            <input type="image" src='image/delete.jpg' class='btnDelete'/>
+                                            </form>
+                                        </td>
+                                    </tr>
                                     <?php endforeach; ?>
 
                                 </tbody>
                             </table>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div><br>
+
         <center>
             <footer style="background-color: #3d3d3d" class="container-fluid text-center">
                 <div class="container">
@@ -211,7 +238,13 @@ $produk = array(array("id"=>1, "nama"=>"Nasi"), array("id"=>2, "nama"=>"Air Mine
             $(document).ready(function(){
             //open popup
             $("#pop").click(function(){
-                document.getElementById("judul_form").innerHTML = "Penjualan Baru";
+                document.getElementById("judul_form").innerHTML = "Bahan Baku Baru";
+                document.getElementById("action").value = "add";
+                document.getElementById("id_bahan").value = -1;
+                document.getElementById("nama").value = "";
+                document.getElementById("tersedia").value = "0";
+                document.getElementById("batas_minimum").value = "0";
+                document.getElementById("btnSubmit").value = "tambahkan";
                 $("#overlay_form").fadeIn(1000);
                 positionPopup();
             });
@@ -228,18 +261,29 @@ $produk = array(array("id"=>1, "nama"=>"Nasi"), array("id"=>2, "nama"=>"Air Mine
                 return;
             }
             $("#overlay_form").css({
-                left: 0,//  ($(window).width() - $('#overlay_form').width()) / 2,
-                top: 0,//($(window).height() - $('#overlay_form').height()) / 7,
+                left: 0,
+                top: 0,
                 position:'absolute'
             });
         }
         //maintain the popup at center of the page when browser resized
         $(window).bind('resize',positionPopup);
-        function edit() {
-            document.getElementById("judul_form").innerHTML = "Edit Data Penjualan";
+        function edit(id) {
+            document.getElementById("judul_form").innerHTML = "Edit Data Bahan Baku (ID : "+id+")";
+            document.getElementById("action").value = "edit";
+            document.getElementById("id_bahan").value = id;
+            document.getElementById("nama").value = document.getElementById("nama"+id).innerHTML;
+            document.getElementById("tersedia").value = document.getElementById("tersedia"+id).innerHTML;
+            document.getElementById("batas_minimum").value = document.getElementById("batas_minimum"+id).innerHTML;
+            document.getElementById("btnSubmit").value = "ubah";
             $("#overlay_form").fadeIn(1000);
             positionPopup();
         }
     </script>
+
+     <?php
+        if(!is_null($message))
+          echo "<script type='text/javascript'>alert('".$message."')</script>";
+     ?>
 </body>
 </html>
