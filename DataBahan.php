@@ -115,7 +115,7 @@
                     <br>
                     <a href="DataBahan.php">Data Bahan</a><br><br>
                     <a href="DataPesananBahan.php">Data Pesanan Bahan</a><br><br>
-                    <a href="DataMakanan.php">Data Makanan</a><br><br>
+                    <a href="DataProduk.php">Data Produk</a><br><br>
                     <br><br>
                     <br><br>
                     <a href="Help.php" style="alignment: bottom">Help</a><br><br>

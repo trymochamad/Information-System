@@ -1,3 +1,7 @@
+<?php
+    include "Authenticator.php";
+    $jenis = authPegawai();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,22 +70,26 @@
 
        <div class="container-fluid maxedwidth">
            <div class="row">
-            <div class="col-sm-4 text-center">
-                <div class="insidecard" style="height: 600px !important;font-size: x-large">
-                    <br>
-                    <a href="DataPenjualan.php">Data Penjualan</a><br><br>
-                    <a href="LaporanPenjualan.php">Laporan Penjualan</a><br><br>
-                    <a href="Statistik.php">Statistik</a><br><br>
-                    <br><br>
-                    <br><br>
-                    <a href="Help.php" style="alignment: bottom">Help</a><br><br>
-                    <a href="About.php">About</a><br><br>
-                    <a href="LogOut.php">Log Out</a>
-
+                <div class="col-sm-4 text-center">
+                    <div class="insidecard" style="height: 600px !important;font-size: x-large">
+                        <br>
+                    <?php if($jenis == "operasional") : ?>
+                        <a href="DataPenjualan.php">Data Penjualan</a><br><br>
+                        <a href="LaporanPenjualan.php">Laporan Penjualan</a><br><br>
+                        <a href="Statistik.php">Statistik</a><br><br>
+                    <?php else : ?>
+                        <a href="DataBahan.php">Data Bahan</a><br><br>
+                        <a href="DataPesananBahan.php">Data Pesanan Bahan</a><br><br>
+                        <a href="DataProduk.php">Data Produk</a><br><br>
+                    <?php endif; ?>
+                        <br><br>
+                        <br><br>
+                        <a href="Help.php" style="alignment: bottom">Help</a><br><br>
+                        <a href="About.php">About</a><br><br>
+                        <a href="LogOut.php">Log Out</a>
+                    </div>
                 </div>
-            </div>
-
-
+                
                <div class="col-sm-7">
                    <div style="height: 230px">
                    </div>

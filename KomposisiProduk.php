@@ -4,37 +4,29 @@
 
     $username = $_SESSION["username"];
     $message = null;
-    $action = null;
+    $produk = array();
+    $produk['nama'] = '';
+    $produk['jenis'] = '';
+    $produk['harga'] = '0';
     $bahan = getAllBahan();
-    if($_SERVER["REQUEST_METHOD"] == "POST") {
-        $action = preprocess($_POST["action"]);
+    $komposisi = array();
+    $id = -1;
+    if($_SERVER["REQUEST_METHOD"] == "GET") {
+        if(isset($_GET["id"])) 
+            $id = preprocess($_GET['id']);
     }
-    if(is_null($message) && !is_null($action)) {
-        if($action == "verifikasi") {
-            $message = verifyPesanan(preprocess($_POST["id"]));
-            if(is_null($message))
-                $message = "Verifikasi ".$_POST["id"]." berhasil";
-        }
-        else {
-            $porsi = array();
-            foreach ($_POST as $key => $value) if(substr($key, 0, 6) == "jumlah") {
-                $item["jumlah"] = $value;
-                $item["id_bahan"] = substr($key, 6);
-                // echo $item["jumlah"]. " ". $item["id_bahan"];
-                array_push($porsi, $item);
-            }
-            if($action == "add") {
-                $tanggal = date("Y-m-d");
-                $message = addPesananBahan($username, $tanggal, $porsi);
-                if(is_null($message))
-                    $message = "Pesanan bahan baru berhasil disimpan";       
-            }
-            else {
-                $message = editPorsiPesan($_POST['id'], $porsi);
-                if(is_null($message))
-                    $message = "Pesanan bahan ".$_POST['id']." berhasil disimpan";       
-            }
-        }
+    if($id != -1) {
+        $produk = getProduk($id);
+        if(is_null($produk))
+            $id = -1;
+        $komposisi = getKomposisi($id);
+    }
+    foreach ($bahan as $key => $value) {
+        if(isset($komposisi[$value['id']]))
+            $value['komposisi'] = $komposisi[$value['id']];
+        else
+            $value['komposisi'] = 0;
+        $bahan[$key] = $value;
     }
     function preprocess($data) {
         $data = trim($data);
@@ -42,12 +34,6 @@
         $data = htmlspecialchars($data);
         return $data;
     }
-
-    $pesanan = getPesananBahan();
-    if($pesanan)
-        $porsi = getPorsiPesan($pesanan['id']);
-    else
-        $porsi = calculatePorsiPesan();
 ?>
 
 <!DOCTYPE html>
@@ -71,14 +57,6 @@
         }
     </style>
     <style>
-        #overlay_form{
-            /*position: absolute;*/
-/*            border: 5px solid gray;
-            padding: 10px;
-            background: white;
-*/            /*width: 700px;*/
-            /*height: 300px;*/
-        }
         #pesan{
             /*display: block;*/
             border: 1px solid gray;
@@ -107,7 +85,7 @@
             </div>
             <div class="collapse navbar-collapse navbar-ex1-collapse">
                 <ul class="nav navbar-nav navbar-header " style="background-color: #3d3d3d;font-size: xx-large">
-                    <li><a href="DataPesananBahan.php">Data Pesanan Bahan</a></li>
+                    <li><a href="KomposisiProduk.php?id=<?=$id?>">Komposisi Produk</a></li>
                 </ul>
             </div>
         </div>
@@ -138,46 +116,54 @@
             <div class="col-sm-8">
                 <div class="row">
                     <div class="text-black container" style="width:100%">
-                        <h2>Pesanan Bahan Baku</h2>
-                        <?php if(is_null($pesanan)): ?>
-                            <p>Anda tidak punya pesanan bahan, untuk melakukan pesanan bahan baru klik <a href="#" id="pesan" >pesan baru</a></p>
-                            <br />
-                            <form id="overlay_form" style="display:none" method="post">
-                                <h3 id="judul_form">Pesanan Bahan Baku Baru</h3>
-                                <input type="hidden" name="action" value="add"/>
-                                <input type="hidden" id="id_pesanan" name="id" value="-1"/>
+                        <?php if($id < 0): ?>
+                        <h2>Produk Baru</h2>
                         <?php else: ?>
-                            <p>Anda mempunyai pesanan bahan yang belum diverifikasi, jika pesanan sudah sampai klik 
-                            <form method="post">
-                                <input type="hidden" name="action" value="verifikasi"/>
-                                <input type="hidden" id="id_pesanan" name="id" value="<?=$pesanan['id']?>"/>
-                                <input type="submit" id="verifikasi" value="verifikasi" >
-                            </form></p>
-                            <br />
-                            <form id="overlay_form" method="post">
-                                <h3 id="judul_form">Pesanan Bahan Baku Yang Belum Diverifikasi</h3>
-                                <input type="hidden" name="action" value="edit"/>
-                                <input type="hidden" id="id_pesanan" name="id" value="<?=$pesanan['id']?>"/>
+                        <h2>Edit Produk Dengan ID : <?=$id?></h2>
                         <?php endif ?>
-
+                            <br />
+                            <form id="overlay_form" method="POST" action="DataProduk.php">
+                                <input type="hidden" name="action" value="<?=($id < 0 ? 'add' : 'edit')?>"/>
+                                <input type="hidden" id="id" name="id" value="<?=$id?>"/>
+                                <div class="row">
+                                    <div class="col-sm-3 text-right" style="color: #3d3d3d !important;font-size: large">
+                                    Nama Produk
+                                    </div>
+                                    <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="nama" name="nama" value="<?=$produk['nama']?>" style="width: 450px"><br>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-3 text-right" style="color: #3d3d3d !important;font-size: large">
+                                    Jenis
+                                    </div>
+                                    <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="jenis" name="jenis" value="<?=$produk['jenis']?>" style="width: 450px"><br>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-3 text-right" style="color: #3d3d3d !important;font-size: large">
+                                    Harga
+                                    </div>
+                                    <div class="col-sm-9">
+                                    <input type="text" class="form-control" id="harga" name="harga" value="<?=$produk['harga']?>" style="width: 450px"><br>
+                                    </div>
+                                </div>
+                                <p>Berikut adalah komposisi bahan baku yang diperlukan untuk membuat produk ini</p>
                                 <table class="table">
                                     <thead>
                                         <tr>
                                             <th>ID Bahan</th>
                                             <th>Nama Bahan</th>
-                                            <th>Batas Minimum</th>
-                                            <th>Tersedia</th>
-                                            <th>Dipesan</th>
+                                            <th>Jumlah Dibutuhkan</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php foreach($porsi as $item) : ?>
+                                        <?php foreach($bahan as $item) : ?>
                                         <tr>
                                             <td><?=$item['id']?></td>
                                             <td><?=$item['nama']?></td>
-                                            <td><?=$item['batas_minimum']?></td>
-                                            <td><?=$item['tersedia']?></td>
-                                            <td><input type="text" class="form-control" name="jumlah<?=$item['id']?>" value="<?=$item['dipesan']?>"/></td>
+                                            <td><input type="text" class="form-control" name="jumlah<?=$item['id']?>" value="<?=$item['komposisi']?>"/></td>
                                         </tr>
                                         <?php endforeach ?>
                                     </tbody>
@@ -218,15 +204,6 @@
                 </div>
             </footer>
         </center>
-        <script type="text/javascript">
-
-        $(document).ready(function(){
-            //open popup
-            $("#pesan").click(function(){
-                $("#overlay_form").fadeIn(1000);
-            });
-        });
-    </script>
      <?php
         if(!is_null($message))
           echo "<script type='text/javascript'>alert('".$message."')</script>";
