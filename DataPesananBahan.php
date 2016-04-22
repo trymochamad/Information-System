@@ -20,7 +20,6 @@
             foreach ($_POST as $key => $value) if(substr($key, 0, 6) == "jumlah") {
                 $item["jumlah"] = $value;
                 $item["id_bahan"] = substr($key, 6);
-                // echo $item["jumlah"]. " ". $item["id_bahan"];
                 array_push($porsi, $item);
             }
             if($action == "add") {

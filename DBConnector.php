@@ -243,9 +243,7 @@
     }
     $ret = array();
     $bahan = getAllBahan();
-    $length_bahan = count($bahan);
-    for($i = 0; $i<$length_bahan; $i++) {
-      $item = $bahan[$i];
+    foreach($bahan as $item) {
       if(array_key_exists($item['id'],$jumlah))
         $item['dipesan'] = $jumlah[$item['id']];
       else
