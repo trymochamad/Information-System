@@ -1,17 +1,22 @@
 <?php
-    // session_start();
-
-    // include "Conf.php";
-
-    // if(!isset($_SESSION["login"])) {
-    //   header("Location: index.php");
-    //   exit;
-    // }
-    // if($_SESSION["login"] !== $session_login) {
-    //   header("Location: index.php");
-    //   exit;
-    // }
-    // include("DBConnector.php");
+  include "Authenticator.php";
+  authOperasional();
+  $jenis = "semua";
+  $awal = date("Y-m-d");
+  $akhir = date("Y-m-d");
+  if($_SERVER["REQUEST_METHOD"] == "POST") {
+    $jenis = preprocess($_POST['jenis']);
+    $awal = preprocess($_POST['awal']);
+    $akhir = preprocess($_POST['akhir']);
+  }
+  $statistik = getStat($jenis, $awal, $akhir);
+  $jenisproduk = getJenisProduk();
+  function preprocess($data) {
+      $data = trim($data);
+      $data = stripslashes($data);
+      $data = htmlspecialchars($data);
+      return $data;
+  }
 ?>
 
 <!DOCTYPE html>
@@ -26,6 +31,7 @@
   <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/js/umd/collapse.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.0.0/Chart.js"></script>
 
   <style>
     .carousel-inner > .item > img,
@@ -103,14 +109,20 @@
         <div class="row">
           <div class="text-black container" style="width:100%">
             <h2>Statistik Penjualan</h2>
-            <form>
+            <form method="POST">
 
              <div class="row">
                <div class="col-sm-3 text-right" style="color: #3d3d3d !important;font-size: large">
                 Jenis
               </div>
-              <div class="col-sm-9">
-               <input type="text" class="form-control" id="ID_User" style="width: 450px"><br>
+             <div class="col-sm-9">
+                 <select type="text" class="form-control" id="jenis" name="jenis" style="width: 450px">
+                  <option value="semua">semua</option>
+                  <?php foreach ($jenisproduk as $item) : ?>
+                  <option value="<?=$item?>" <?=($jenis==$item)? "selected" : ""?>><?=$item?></option>
+                  <?php endforeach ?>
+                  </select>
+             <br>
              </div>
            </div>
 
@@ -119,22 +131,22 @@
               Rentang Waktu
              </div>
              <div class="col-sm-9 text-black">
-             <input type="text" class="form-control" id="waktu_awal" style="width: 450px">
+             <input type="text" class="form-control" id="awal" name="awal" value="<?=$awal?>" style="width: 450px">
              s.d.
-             <input type="text" class="form-control" id="waktu_akhir" style="width: 450px"><br><br>
+             <input type="text" class="form-control" id="akhir" name="akhir" value="<?=$akhir?>" style="width: 450px"><br><br>
              </div>
            </div>
            <div class="row">
              <div class="col-sm-9">
              </div>
              <div class="col-sm-1">
-               <button type="button" class="btn-xlarge" onclick="promtentry()">Entry</button>
+               <button type="submit" class="btn-xlarge">SHOW</button>
              </div>
            </div>
          </form>
          <br><br>
          <h3>Grafik Penjualan</h3>
-         <img src="image/jquery-chart-php-mysql.png"/>
+         <canvas id="myChart" width="100%" height="60%"></canvas>
        </div>
      </div>
    </div>
@@ -169,9 +181,60 @@
   </footer>
 </center>
 <script type="text/javascript">
-  function cetak() {
 
-  }
+    var ctx = document.getElementById("myChart").getContext("2d");
+    var data = {
+      labels: [
+        <?php foreach ($statistik as $key => $value)
+          echo "'".$key."', ";
+        ?>
+      ],
+      datasets: [
+        {
+          label: "Jumlah Penjualan",
+
+          // The properties below allow an array to be specified to change the value of the item at the given index
+          // String  or array - the bar color
+          backgroundColor: "rgba(52,201,250,1)",
+
+          // String or array - bar stroke color
+          borderColor: "rgba(220,220,220,1)",
+
+          // Number or array - bar border width
+          borderWidth: 1,
+
+          // String or array - fill color when hovered
+          hoverBackgroundColor: "rgba(52,201,250,0.5)",
+
+          // String or array - border color when hovered
+          hoverBorderColor: "rgba(220,220,220,1)",
+
+          // The actual data
+          data: [
+          <?php foreach ($statistik as $key => $value)
+            echo $value.', ';
+          ?>
+        ],
+
+          // String - If specified, binds the dataset to a certain y-axis. If not specified, the first y-axis is used.
+          yAxisID: "y-axis-0",
+        }
+      ]
+    };
+    var myBarChart = new Chart(ctx, {
+      type: 'bar',
+      data: data,
+      options:  {
+        scales: {
+            xAxes: [{
+              stacked: true
+            }],
+            yAxes: [{
+              stacked: true
+            }]
+        }
+      }
+    });
 </script>
 </body>
 </html>

@@ -408,4 +408,41 @@
       return "Penghapusan komposisi gagal";
     return null;
   }
+  ////////////////////////////////// Statistik //////////////////////////////////
+  function getJenisProduk() {
+    global $db;
+    $qry = "SELECT DISTINCT jenis FROM produk";
+    $res = mysqli_query($db, $qry);
+    $ret = array();
+    $jenis = $res->fetch_assoc();
+    while(!is_null($jenis)) {
+      array_push($ret, $jenis['jenis']);
+      $jenis = $res->fetch_assoc();  
+    }
+    return $ret;
+  }
+  function getStat($kategori, $awal, $akhir) {
+    global $db;
+    if($kategori == "semua")
+      $qry = "SELECT tanggal, count(*) as banyak FROM penjualan GROUP BY tanggal HAVING tanggal >= '$awal' AND tanggal <= '$akhir'";
+    else
+      $qry = "SELECT tanggal, count(*) as banyak FROM penjualan INNER JOIN (SELECT * FROM produk WHERE jenis='$kategori') AS prod ON penjualan.id_produk=prod.id GROUP BY tanggal HAVING tanggal >= '$awal' AND tanggal<='$akhir'";
+    $res = mysqli_query($db, $qry);
+    $stat = array();
+    $now = $res->fetch_assoc();
+    while(!is_null($now)) {
+      array_push($stat, $now);
+      $now = $res->fetch_assoc();
+    }
+    $ret = array();
+    foreach ($stat as $item) {
+      $date = strtotime($item['tanggal']);
+      $ret[Date("F Y", $date)] = 0;
+    }
+    foreach ($stat as $item) {
+      $date = strtotime($item['tanggal']);
+      $ret[Date("F Y", $date)] += $item['banyak'];
+    }
+    return $ret;
+  }
 ?>

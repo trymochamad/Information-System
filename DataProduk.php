@@ -17,7 +17,7 @@
         }
         else {
             $nama = preprocess($_POST['nama']);
-            $jenis = preprocess($_POST['jenis']);
+            $jenis = strtolower(preprocess($_POST['jenis']));
             $harga = preprocess($_POST['harga']);
             $komposisi = array();
             foreach ($_POST as $key => $value) if(substr($key, 0, 6) == "jumlah") {
