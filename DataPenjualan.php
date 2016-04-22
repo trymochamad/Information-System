@@ -140,7 +140,7 @@
                                  </div>
 
                                    <div class="col-sm-9">
-                                       <select type="text" class="form-control" id="id_produk" name="id_produk" style="width: 450px">
+                                       <select type="text" class="form-control" id="id_produk" name="id_produk" style="width: 450px" onchange="changeSelected()">
                                         <?php foreach ($produk as $item) : ?> 
                                         <option value="<?=$item["id"]?>"><?=$item["id"]?> - <?=$item["nama"]?></option>
                                         <?php endforeach ?>
@@ -292,6 +292,19 @@
             document.getElementById("btnSubmit").value = "ubah";
             $("#overlay_form").fadeIn(1000);
             positionPopup();
+        }
+        function changeSelected() {
+            var produk = [];
+            var id = 0;
+            <?php
+                $x = 0; 
+                foreach ($produk as $item) {
+                    echo 'produk['.$x.'] = '.$item["harga"].';';
+                    $x++;
+                }
+            ?>
+            var selectBox = document.getElementById("id_produk");
+            document.getElementById("harga").value = produk[selectBox.selectedIndex];
         }
     </script>
 

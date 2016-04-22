@@ -38,6 +38,13 @@
 
     if(!$res) 
       return "Penambahan penjualan baru gagal";
+    $komposisi = getKomposisi($id_produk);
+    $bahan = getAllBahan();
+    foreach ($komposisi as $key => $value) {
+      $jumlah = $bahan[$key]['tersedia'] - $value;
+      $qry = "UPDATE bahan_baku SET tersedia=$jumlah WHERE id=$key";
+      $res = mysqli_query($db, $qry);
+    }
     return null;
   }
   function deletePenjualan($id, $username) {
@@ -51,10 +58,16 @@
       return "Pengguna ".$username." tidak berhak menghapus penjualan dengan ID ".$id;
     $qry = "DELETE FROM penjualan WHERE id='$id'";    
     $res = mysqli_query($db, $qry);
-    if($res) 
-      return null;
-    else
+    if(!$res) 
       return "Penghapusan penjualan gagal";
+    $komposisi = getKomposisi($penjualan['id_produk']);
+    $bahan = getAllBahan();
+    foreach ($komposisi as $key => $value) {
+      $jumlah = $bahan[$key]['tersedia'] + $value;
+      $qry = "UPDATE bahan_baku SET tersedia=$jumlah WHERE id=$key";
+      $res = mysqli_query($db, $qry);
+    }
+    return null;
   }
   function editPenjualan($id, $username, $id_produk, $tanggal, $harga){
     global $db;
@@ -72,10 +85,24 @@
       return "Pengguna ".$username." tidak berhak mengubah penjualan dengan ID ".$id;
     $qry = "UPDATE penjualan SET username='$username', id_produk='$id_produk', tanggal='$tanggal', harga_terjual='$harga' WHERE id='$id'";
     $res = mysqli_query($db, $qry);
-    if($res) 
-      return null;
-    else
+    if(!$res)
       return "Pengeditan penjualan gagal";
+    $komposisi = getKomposisi($penjualan['id_produk']);
+    $bahan = getAllBahan();
+    foreach ($komposisi as $key => $value) {
+      $jumlah = $bahan[$key]['tersedia'] + $value;
+      $qry = "UPDATE bahan_baku SET tersedia=$jumlah WHERE id=$key";
+      $bahan[$key]['tersedia'] = $jumlah;
+      $res = mysqli_query($db, $qry);
+    }
+    $komposisi = getKomposisi($id_produk);
+    $bahan = getAllBahan();
+    foreach ($komposisi as $key => $value) {
+      $jumlah = $bahan[$key]['tersedia'] - $value;
+      $qry = "UPDATE bahan_baku SET tersedia=$jumlah WHERE id=$key";
+      $res = mysqli_query($db, $qry);
+    }
+    return null;
   }
   /////////////////////////////////////// Pegawai //////////////////////////////////////////
   function getPegawai($username) {
@@ -104,7 +131,7 @@
     $ret = array();
     $bahan = $res->fetch_assoc();
     while($bahan) {
-      array_push($ret, $bahan);
+      $ret[$bahan['id']] = $bahan;
       $bahan = $res->fetch_assoc();  
     }
     return $ret;
@@ -285,7 +312,7 @@
     $fail = false;
     foreach ($komposisi as $key => $value) {
       if($value > 0) {
-        $qry = "INSERT INTO komposisi(id_produk, id_bahan, jumlah) VALUES ($id_produk, $id_bahan, $value)";
+        $qry = "INSERT INTO komposisi(id_produk, id_bahan, jumlah) VALUES ($id, $key, $value)";
         $res = mysqli_query($db, $qry);
         if(!$res)
           $fail = true;
